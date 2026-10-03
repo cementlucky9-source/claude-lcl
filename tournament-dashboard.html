@@ -1,0 +1,865 @@
+<title>Lucky Cement Table Tennis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: one centred working column. The header is drawn as a table-top seen from above
+   (blue surface, white edge line, centre line); tabs and cards sit below it on a cool neutral ground. */
+:root{
+  --bg:#f1f4f8; --surface:#ffffff; --surface-2:#f6f8fb; --ink:#14212f; --muted:#596778; --line:#d8dfe8; --chip:#e8eef5;
+  --table:#1c4b84; --table-deep:#153a68; --chalk:#ffffff;
+  --accent:#c4520f; --accent-ink:#ffffff; --accent-soft:#fbe9dc;
+  --good:#1b7a44; --good-bg:#e1f3e8; --warn:#8f5b0f; --warn-bg:#fbefd8; --bad:#b0372a; --bad-bg:#fbe5e1;
+  --f-display:"Saira Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px; --shadow:0 1px 2px rgba(20,33,47,.06),0 4px 14px rgba(20,33,47,.05);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d131a; --surface:#151e28; --surface-2:#1a2531; --ink:#e6ecf2; --muted:#94a2b2; --line:#283544; --chip:#1f2b38;
+  --table:#24599a; --table-deep:#1b4679; --chalk:#f4f7fb;
+  --accent:#f08a4b; --accent-ink:#1d0f05; --accent-soft:#3a2416;
+  --good:#5cc489; --good-bg:#16301f; --warn:#e5b25a; --warn-bg:#33270f; --bad:#ef7b6d; --bad-bg:#3a1a16;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d131a; --surface:#151e28; --surface-2:#1a2531; --ink:#e6ecf2; --muted:#94a2b2; --line:#283544; --chip:#1f2b38;
+  --table:#24599a; --table-deep:#1b4679; --chalk:#f4f7fb;
+  --accent:#f08a4b; --accent-ink:#1d0f05; --accent-soft:#3a2416;
+  --good:#5cc489; --good-bg:#16301f; --warn:#e5b25a; --warn-bg:#33270f; --bad:#ef7b6d; --bad-bg:#3a1a16;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 56px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-size:1.45rem}
+h3{font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.num{font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header: the table */
+.court{position:relative;background:var(--table);color:var(--chalk);border-radius:14px;padding:22px 24px 20px;overflow:hidden;isolation:isolate}
+.court::before{content:"";position:absolute;inset:8px;border:2px solid color-mix(in srgb,var(--chalk) 85%,transparent);border-radius:8px;z-index:-1}
+.court::after{content:"";position:absolute;top:8px;bottom:8px;left:50%;width:0;border-left:1px solid color-mix(in srgb,var(--chalk) 45%,transparent);z-index:-1}
+.court-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:.95rem;text-transform:uppercase;letter-spacing:.18em;opacity:.85}
+.court h1{font-size:clamp(1.9rem,5vw,2.8rem);margin-top:2px}
+.court h1 .ball{display:inline-block;width:.42em;height:.42em;border-radius:50%;background:var(--accent);vertical-align:.15em;margin-left:.18em;box-shadow:inset -2px -2px 0 rgba(0,0,0,.15)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:14px}
+.meta span{background:color-mix(in srgb,var(--table-deep) 80%,transparent);border:1px solid color-mix(in srgb,var(--chalk) 25%,transparent);padding:3px 10px;border-radius:999px;font-size:.88rem;font-variant-numeric:tabular-nums}
+.meta .sync{border-style:dashed}
+.viewer{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--table-deep) 85%,transparent);border:1px solid color-mix(in srgb,var(--chalk) 25%,transparent);border-radius:999px;padding:4px 12px 4px 4px;font-size:.9rem;max-width:100%}
+.viewer img{width:26px;height:26px;border-radius:50%}
+.viewer .role{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;background:var(--accent);color:var(--accent-ink);padding:1px 7px;border-radius:999px;font-weight:700}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px 9px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .count{display:inline-block;min-width:1.4em;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:.75rem;text-align:center}
+
+/* Cards and layout */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0;box-shadow:var(--shadow)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.banner{border-radius:var(--r);padding:12px 14px;background:var(--warn-bg);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
+.banner b{color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px}
+.stat b{display:block;font-family:var(--f-display);font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:16px;color:var(--muted);background:var(--surface-2)}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.legend{font-weight:600;font-size:.9rem}
+.opt{font-weight:400;color:var(--muted)}
+input[type=text],input[type=date],input[type=number],input[type=search],select{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+input:focus,select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>.field{flex:1 1 160px}
+.checks{display:flex;gap:8px;flex-wrap:wrap;border:0;padding:0;margin:0}
+.checks legend{padding:0;margin-bottom:6px}
+.check{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);cursor:pointer;font-weight:600}
+.check input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn:hover{border-color:color-mix(in srgb,var(--ink) 35%,var(--line))}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.btn.armed{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.sm{padding:4px 10px;font-size:.86rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;padding:3px;background:var(--surface-2);gap:3px;flex-wrap:wrap}
+.seg button{appearance:none;border:0;background:none;padding:6px 14px;border-radius:7px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+.step{display:flex;flex-direction:column;gap:10px}
+.step-n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--table);color:var(--chalk);font-size:.8rem;font-weight:700;margin-right:8px;font-family:var(--f-body)}
+
+/* Pills, tags, chips */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:700;white-space:nowrap;background:var(--chip);color:var(--muted)}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+.tag{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);vertical-align:.1em}
+.tag.d{border-color:color-mix(in srgb,var(--table) 50%,var(--line));color:var(--table)}
+:root:not([data-theme="light"]) .tag.d{color:color-mix(in srgb,var(--table) 40%,var(--ink))}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 11px;cursor:pointer;font-weight:600;text-align:left;display:inline-flex;flex-direction:column;line-height:1.2}
+.chip small{font-weight:400;color:var(--muted);font-size:.78rem}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip:disabled{opacity:.5;cursor:not-allowed}
+.lock{display:inline-flex;align-items:center;gap:6px;color:var(--good);font-weight:700;font-size:.88rem}
+.lock svg{width:14px;height:14px}
+
+/* Match rows */
+.mlist{display:flex;flex-direction:column;gap:6px}
+.mrow{appearance:none;width:100%;display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;cursor:pointer}
+.mrow:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.mrow .when{display:flex;flex-direction:column;font-size:.85rem;line-height:1.25;font-variant-numeric:tabular-nums}
+.mrow .when span{color:var(--muted)}
+.mrow .who{min-width:0;overflow-wrap:anywhere}
+.v{color:var(--muted);font-size:.85em;margin:0 4px}
+.won{font-weight:700}
+.score{font-family:var(--f-display);font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:520px){.mrow{grid-template-columns:minmax(0,1fr) auto}.mrow .when{grid-column:1/-1;flex-direction:row;gap:8px}}
+.group-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-top:4px}
+
+/* Schedule grid */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+.sched td{min-width:180px}
+.sched th[scope=row]{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;width:1%}
+.sched th[scope=row] small{display:block;color:var(--muted);font-weight:400}
+.cell{appearance:none;width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface-2);cursor:pointer;display:flex;flex-direction:column;gap:3px;min-height:52px;justify-content:center}
+.cell.match{border-left:4px solid var(--table)}
+.cell.match.mine{border-left-color:var(--accent);background:var(--accent-soft)}
+.cell.open{border-style:dashed;color:var(--muted);font-weight:600;align-items:center}
+.cell.open:hover{border-color:var(--accent);color:var(--accent)}
+.cell.closed{cursor:default;color:var(--muted);border-style:dotted;align-items:center;background:none}
+.cell.pick[aria-pressed="true"]{border:2px solid var(--accent);color:var(--accent);background:var(--accent-soft)}
+.cell.busy{cursor:not-allowed;color:var(--muted);background:none;align-items:center;font-size:.85rem}
+.cell .ln{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:.88rem;overflow-wrap:anywhere}
+.std td,.std th{font-variant-numeric:tabular-nums}
+.std td.n,.std th.n{text-align:right;width:1%;white-space:nowrap}
+.std tr.me td{background:var(--accent-soft)}
+.rank{font-family:var(--f-display);font-weight:700;color:var(--muted)}
+
+/* People lists */
+.plist{display:flex;flex-direction:column}
+.prow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.prow:last-child{border-bottom:0}
+.prow .nm{font-weight:600;overflow-wrap:anywhere;min-width:0}
+.prow .nm small{display:block;font-weight:400;color:var(--muted)}
+
+/* Dialog */
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,18,28,.5)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:16px}
+.board{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;background:var(--table);color:var(--chalk);border-radius:10px;padding:14px;text-align:center}
+.board .side{font-weight:700;overflow-wrap:anywhere}
+.board .big{font-family:var(--f-display);font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.games{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.games span{background:var(--chip);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums;font-weight:600}
+.sgrid{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:6px 10px;align-items:center}
+.sgrid .h{font-size:.8rem;font-weight:700;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgrid input{text-align:center}
+.err{color:var(--bad);font-weight:600;font-size:.9rem}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:9px;font-weight:600;max-width:calc(100vw - 32px);box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:10}
+#toast.bad{background:var(--bad);color:#fff}
+@media (prefers-reduced-motion:no-preference){.btn,.chip,.cell,.mrow,.tab{transition:border-color .15s,background-color .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="court">
+    <div class="court-top">
+      <div>
+        <div class="eyebrow">Lucky Cement</div>
+        <h1>Table Tennis Tournament<span class="ball" aria-hidden="true"></span></h1>
+      </div>
+      <div id="viewer"></div>
+    </div>
+    <div class="meta" id="hdr-meta"></div>
+  </header>
+  <div id="banner"></div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
+  <main id="view"></main>
+</div>
+<dialog id="dlg" aria-label="Match details"></dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+"use strict";
+// Matches run 4:30 pm to 7:30 pm. The organizer sets days, tables, slot length and best-of in Admin.
+const WINDOW = { start: 16*60+30, end: 19*60+30 };
+const DEFAULTS = { days: [], tables: 2, bestOf: 3, slotMinutes: 30 };
+const TABS = [
+  ["home","My games"],["schedule","Schedule"],["book","Book a match"],
+  ["players","Players"],["standings","Standings"],["admin","Admin"]
+];
+
+const S = {
+  db:null, user:null, uid:null, isOwner:false, canWrite:null, myName:"", avatar:"", connected:false, failed:false,
+  players:{}, pairs:{}, matches:{}, config:{...DEFAULTS},
+  loaded:{players:false,pairs:false,matches:false,config:false},
+  tab:"home", scheduleDay:null, armed:null, busy:false, openMatch:null, scoreErr:"",
+  reg:{name:"",dept:"",singles:true,doubles:false}, regTouched:false,
+  edit:null, partnerPick:null, playerFilter:"",
+  book:{cat:null,a:null,b:null,day:null,cell:null},
+  admin:{newDay:"",tables:null,bestOf:null,slotMinutes:null,pName:"",pDept:"",pSingles:true,pDoubles:false,pairA:"",pairB:""},
+  scores:{}
+};
+const ready = () => Object.values(S.loaded).every(Boolean);
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const hhmm = m => pad(Math.floor(m/60)) + pad(m%60);
+function fmtTime(m, ap=true){ let h=Math.floor(m/60); const s=h>=12?"pm":"am"; h=h%12||12; return `${h}:${pad(m%60)}${ap?" "+s:""}`; }
+function parseDay(d){ const [y,mo,dd]=d.split("-").map(Number); return new Date(y,mo-1,dd); }
+function fmtDay(d, long){ return parseDay(d).toLocaleDateString(undefined, long?{weekday:"long",day:"numeric",month:"long"}:{weekday:"short",day:"numeric",month:"short"}); }
+function todayStr(){ const t=new Date(); return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`; }
+function isPast(day, slot){ const d=parseDay(day); d.setMinutes(slot); return d.getTime() <= Date.now(); }
+function slotList(){ const step=Number(S.config.slotMinutes)||30, out=[]; for(let t=WINDOW.start;t+step<=WINDOW.end;t+=step) out.push(t); return out; }
+const slotLabel = t => `${fmtTime(t,false)} – ${fmtTime(t+(Number(S.config.slotMinutes)||30))}`;
+const matchKey = (day, slot, table) => `${day}_${hhmm(slot)}_t${table}`;
+const days = () => [...new Set(S.config.days||[])].sort();
+const tableList = () => Array.from({length:Math.max(1,Number(S.config.tables)||1)},(_,i)=>i+1);
+const LOCK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 7V5a4 4 0 1 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4Zm2 0h4V5a2 2 0 1 0-4 0v2Z"/></svg>';
+
+// ---------- tournament model ----------
+const me = () => S.uid ? S.players[S.uid] : null;
+const pName = id => S.players[id]?.name || "Removed player";
+function pairOf(pid){ for(const [id,p] of Object.entries(S.pairs)) if(p.a===pid||p.b===pid) return id; return null; }
+function partnerOf(pid){ const p=S.pairs[pairOf(pid)]; return p ? (p.a===pid?p.b:p.a) : null; }
+function sideName(cat,id){ if(cat==="singles") return pName(id); const p=S.pairs[id]; return p?`${pName(p.a)} & ${pName(p.b)}`:"Removed pair"; }
+function members(cat,id){ if(cat==="singles") return [id]; const p=S.pairs[id]; return p?[p.a,p.b]:[]; }
+const matchMembers = m => [...members(m.category,m.a),...members(m.category,m.b)];
+function sideOf(m, uid){ if(!uid) return null; if(members(m.category,m.a).includes(uid)) return "a"; if(members(m.category,m.b).includes(uid)) return "b"; return null; }
+const mySide = m => sideOf(m, S.uid);
+function mySideId(cat){ if(!S.uid||!me()) return null; if(cat==="singles") return me().singles?S.uid:null; return pairOf(S.uid); }
+function entities(cat){
+  const ids = cat==="singles" ? Object.keys(S.players).filter(id=>S.players[id].singles) : Object.keys(S.pairs);
+  return ids.sort((x,y)=>sideName(cat,x).localeCompare(sideName(cat,y)));
+}
+const sortedMatches = list => list.sort((x,y)=> x.day.localeCompare(y.day) || x.slot-y.slot || x.table-y.table);
+const allMatches = () => sortedMatches(Object.values(S.matches));
+const hasResult = m => ["reported","confirmed","disputed"].includes(m.status);
+const counts = m => hasResult(m) && m.games ? m.games.reduce((t,g)=>(g.a>g.b?t[0]++:t[1]++,t),[0,0]) : null;
+function fixtureExists(cat,a,b){ return Object.values(S.matches).some(m=>m.category===cat&&((m.a===a&&m.b===b)||(m.a===b&&m.b===a))); }
+function busyAt(day, slot, matches){ const set=new Set(); for(const m of matches) if(m.day===day&&m.slot===slot) matchMembers(m).forEach(p=>set.add(p)); return set; }
+const reporterName = uid => !uid ? "" : (S.players[uid]?.name || "the organizer");
+
+function canReport(m){
+  if(S.isOwner) return true;
+  const side=mySide(m); if(!side) return false;
+  if(m.status==="scheduled"||m.status==="disputed") return true;
+  return m.status==="reported" && m.reportedBy===S.uid;
+}
+function canConfirm(m){ const side=mySide(m); return m.status==="reported" && !!side && side!==sideOf(m,m.reportedBy) && m.reportedBy!==S.uid; }
+const canCancel = m => S.isOwner || (!!mySide(m) && m.status==="scheduled");
+const needsMe = m => (mySide(m) && isPast(m.day,m.slot) && (m.status==="scheduled"||m.status==="disputed")) || canConfirm(m);
+
+// Games go to 11, win by 2. A match ends once a side has won the majority of best-of games.
+function validGame(a,b){ if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0) return false; const hi=Math.max(a,b), lo=Math.min(a,b); if(hi<11) return false; return hi===11 ? lo<=9 : hi-lo===2; }
+function evalScore(rows, bestOf){
+  const need=Math.ceil(bestOf/2); let wa=0, wb=0, gap=false; const games=[];
+  for(let i=0;i<rows.length;i++){
+    const [ra,rb]=rows[i]||["",""]; const blank=String(ra??"").trim()===""&&String(rb??"").trim()==="";
+    if(blank){ gap=true; continue; }
+    if(gap) return {error:"Fill in the games in the order they were played."};
+    if(wa===need||wb===need) return {error:`Game ${i+1} wasn't needed. The match was already decided.`};
+    const a=Number(ra), b=Number(rb);
+    if(String(ra).trim()===""||String(rb).trim()===""||!validGame(a,b)) return {error:`Game ${i+1} isn't a valid score. Games go to 11 and must be won by 2, for example 11–7 or 13–11.`};
+    games.push({a,b}); a>b?wa++:wb++;
+  }
+  if(wa<need&&wb<need) return {error:`Enter games until one side has won ${need}.`};
+  return {games, winner: wa>wb?"a":"b"};
+}
+function standings(cat){
+  const T={}; for(const id of entities(cat)) T[id]={id,p:0,w:0,l:0,gw:0,gl:0,pf:0,pa:0};
+  for(const m of Object.values(S.matches)){
+    if(m.category!==cat||!(m.status==="reported"||m.status==="confirmed")) continue;
+    for(const side of ["a","b"]){
+      const r=T[m[side]]; if(!r) continue; r.p++; m.winner===side?r.w++:r.l++;
+      for(const g of m.games||[]){ const mine=side==="a"?g.a:g.b, th=side==="a"?g.b:g.a; mine>th?r.gw++:r.gl++; r.pf+=mine; r.pa+=th; }
+    }
+  }
+  return Object.values(T).sort((x,y)=> y.w-x.w || (y.gw-y.gl)-(x.gw-x.gl) || (y.pf-y.pa)-(x.pf-x.pa) || sideName(cat,x.id).localeCompare(sideName(cat,y.id)));
+}
+
+// ---------- small render helpers ----------
+function armBtn(key, label, confirmLabel, act, attrs="", cls="btn danger sm"){
+  const on=S.armed===key;
+  return `<button type="button" class="${cls}${on?" armed":""}" data-act="${act}" data-arm="${esc(key)}" ${attrs}>${esc(on?confirmLabel:label)}</button>`;
+}
+function statusPill(m){
+  const past=isPast(m.day,m.slot);
+  if(m.status==="confirmed") return '<span class="pill good">Final</span>';
+  if(m.status==="reported") return '<span class="pill info">Awaiting confirmation</span>';
+  if(m.status==="disputed") return '<span class="pill bad">Disputed</span>';
+  return past ? '<span class="pill warn">Result due</span>' : '<span class="pill">Scheduled</span>';
+}
+function sideHtml(m, side){
+  const won=hasResult(m)&&m.winner===side; const mine=mySide(m)===side;
+  return `<span class="${won?"won":""}">${esc(sideName(m.category,m[side]))}${mine?' <span class="muted small">(you)</span>':""}</span>`;
+}
+const catTag = cat => cat==="singles" ? '<span class="tag">Singles</span>' : '<span class="tag d">Doubles</span>';
+function matchRow(m){
+  const c=counts(m);
+  return `<button type="button" class="mrow" data-act="open-match" data-id="${esc(m.id)}">
+    <span class="when"><b>${esc(fmtDay(m.day))}</b><span>${esc(fmtTime(m.slot))} · Table ${m.table}</span></span>
+    <span class="who">${catTag(m.category)} ${sideHtml(m,"a")}<span class="v">v</span>${sideHtml(m,"b")}</span>
+    <span class="actions" style="align-items:center">${c?`<span class="score">${c[0]}–${c[1]}</span>`:""}${statusPill(m)}</span>
+  </button>`;
+}
+const emptyBox = html => `<div class="empty">${html}</div>`;
+
+// ---------- header, banner, tabs ----------
+function headerMeta(){
+  const d=days();
+  const range = !d.length ? "Match days to be announced" : d.length===1 ? fmtDay(d[0]) : `${fmtDay(d[0])} to ${fmtDay(d[d.length-1])}`;
+  return `<span>${esc(range)}</span><span>4:30 – 7:30 pm</span><span>${S.config.tables} ${Number(S.config.tables)===1?"table":"tables"}</span><span>Best of ${S.config.bestOf}</span>${!S.failed&&!ready()?'<span class="sync">Connecting…</span>':""}`;
+}
+function viewerChip(){
+  if(!S.connected) return "";
+  const name = me()?.name || S.myName || (S.uid?"You":"Guest");
+  return `<div class="viewer">${S.avatar?`<img src="${esc(S.avatar)}" alt="">`:""}<span>${esc(name)}</span>${S.isOwner?'<span class="role">Admin</span>':""}</div>`;
+}
+function banner(){
+  if(S.failed) return `<div class="banner"><b>Live data isn't available here.</b> Open this page in claude.ai while signed in to register, pick a partner, book matches and report scores.</div>`;
+  if(!S.connected) return "";
+  if(!S.uid) return `<div class="banner"><b>You're viewing as a guest.</b> Sign in to claude.ai to register for the tournament.</div>`;
+  if(S.canWrite===false) return `<div class="banner"><b>You can follow the tournament here.</b> To register, book matches or report scores, ask the organizer to give you Contributor access to this page.</div>`;
+  return "";
+}
+function tabs(){
+  const due = S.uid ? Object.values(S.matches).filter(needsMe).length : 0;
+  return TABS.filter(([k])=>k!=="admin"||S.isOwner).map(([k,l])=>
+    `<button type="button" class="tab" role="tab" id="tab-${k}" aria-selected="${S.tab===k}" data-act="tab" data-tab="${k}">${l}${k==="home"&&due?`<span class="count">${due}</span>`:""}</button>`).join("");
+}
+
+// ---------- My games ----------
+function viewHome(){
+  const ms=allMatches(); const played=ms.filter(m=>m.status==="reported"||m.status==="confirmed").length;
+  const stats=`<div class="stats">
+    <div class="stat"><b>${Object.keys(S.players).length}</b><span>Players</span></div>
+    <div class="stat"><b>${Object.keys(S.pairs).length}</b><span>Doubles pairs</span></div>
+    <div class="stat"><b>${ms.length}</b><span>Matches booked</span></div>
+    <div class="stat"><b>${played}</b><span>Results in</span></div></div>`;
+  const p=me();
+  const left = p ? profileCard(p)+partnerCard(p) : registerCard();
+  return `<div class="stack">${stats}<div class="grid2"><div class="stack">${left}</div><div class="stack">${myMatchesCard()}</div></div></div>`;
+}
+function registerCard(){
+  const can = S.uid && S.canWrite!==false && S.db;
+  return `<section class="card" aria-labelledby="reg-h">
+    <div class="card-head"><h2 id="reg-h">Register to play</h2></div>
+    <p class="muted">Enter the name other players will see, then pick your categories. You can play both.</p>
+    <div class="row">
+      <div class="field"><label for="reg-name">Name</label><input type="text" id="reg-name" data-bind="reg.name" value="${esc(S.reg.name)}" maxlength="40" autocomplete="name" ${can?"":"disabled"}></div>
+      <div class="field"><label for="reg-dept">Department <span class="opt">optional</span></label><input type="text" id="reg-dept" data-bind="reg.dept" value="${esc(S.reg.dept)}" maxlength="40" ${can?"":"disabled"}></div>
+    </div>
+    <fieldset class="checks"><legend class="legend">Categories</legend>
+      <label class="check"><input type="checkbox" id="reg-s" data-bind="reg.singles" ${S.reg.singles?"checked":""} ${can?"":"disabled"}> Singles</label>
+      <label class="check"><input type="checkbox" id="reg-d" data-bind="reg.doubles" ${S.reg.doubles?"checked":""} ${can?"":"disabled"}> Doubles</label>
+    </fieldset>
+    <div class="actions"><button type="button" class="btn primary" id="btn-reg" data-act="register" ${can?"":"disabled"}>Register</button></div>
+    ${!S.connected&&!S.failed?'<p class="small muted">Connecting to the tournament…</p>':""}
+  </section>`;
+}
+function profileCard(p){
+  if(S.edit){
+    const e=S.edit;
+    return `<section class="card" aria-labelledby="pf-h"><div class="card-head"><h2 id="pf-h">Your registration</h2></div>
+      <div class="row">
+        <div class="field"><label for="ed-name">Name</label><input type="text" id="ed-name" data-bind="edit.name" value="${esc(e.name)}" maxlength="40"></div>
+        <div class="field"><label for="ed-dept">Department <span class="opt">optional</span></label><input type="text" id="ed-dept" data-bind="edit.dept" value="${esc(e.dept)}" maxlength="40"></div>
+      </div>
+      <fieldset class="checks"><legend class="legend">Categories</legend>
+        <label class="check"><input type="checkbox" id="ed-s" data-bind="edit.singles" ${e.singles?"checked":""}> Singles</label>
+        <label class="check"><input type="checkbox" id="ed-d" data-bind="edit.doubles" ${e.doubles?"checked":""}> Doubles</label>
+      </fieldset>
+      <div class="actions"><button type="button" class="btn primary" id="btn-save-pf" data-act="save-profile">Save</button><button type="button" class="btn" data-act="cancel-edit">Cancel</button></div>
+    </section>`;
+  }
+  const cats=[p.singles&&"Singles",p.doubles&&"Doubles"].filter(Boolean);
+  return `<section class="card" aria-labelledby="pf-h"><div class="card-head"><h2 id="pf-h">${esc(p.name)}</h2><button type="button" class="btn sm" data-act="edit-profile">Edit</button></div>
+    <p class="muted">${p.dept?esc(p.dept)+" · ":""}Registered for ${cats.length?esc(cats.join(" and ")):"no category yet"}</p>
+  </section>`;
+}
+function partnerCard(p){
+  if(!p.doubles) return `<section class="card"><h2>Doubles partner</h2><p class="muted">You're not entered in doubles. Edit your registration and tick Doubles to choose a partner.</p></section>`;
+  const partner=partnerOf(S.uid);
+  if(partner) return `<section class="card"><div class="card-head"><h2>Doubles partner</h2><span class="lock">${LOCK} Locked</span></div>
+    <p style="font-size:1.15rem;font-weight:700">${esc(pName(partner))}</p>
+    <p class="small muted">Partners are final once chosen. Only the organizer can remove or change a pair.</p></section>`;
+  const free=Object.keys(S.players).filter(id=>id!==S.uid&&S.players[id].doubles&&!pairOf(id)).sort((x,y)=>pName(x).localeCompare(pName(y)));
+  if(S.partnerPick&&!free.includes(S.partnerPick)) S.partnerPick=null;
+  const list = free.length ? `<div class="chips" role="group" aria-label="Available partners">${free.map(id=>`<button type="button" class="chip" aria-pressed="${S.partnerPick===id}" data-act="pick-partner" data-id="${esc(id)}">${esc(pName(id))}${S.players[id].dept?`<small>${esc(S.players[id].dept)}</small>`:""}</button>`).join("")}</div>`
+    : emptyBox("Nobody else is free for doubles yet. When a colleague registers for doubles, they'll appear here.");
+  const pick=S.partnerPick;
+  return `<section class="card"><div class="card-head"><h2>Choose your doubles partner</h2></div>
+    <p class="muted small">Your choice is final. You won't be able to change partners afterwards; only the organizer can.</p>
+    ${list}
+    ${pick?`<div class="actions">${armBtn("partner",`Lock in ${pName(pick)}`,`Tap again to pair with ${pName(pick)} for good`,"confirm-partner",'id="btn-partner"',"btn primary")}</div>`:""}
+  </section>`;
+}
+function myMatchesCard(){
+  if(!S.uid||!me()) return `<section class="card"><h2>Your matches</h2>${emptyBox("Once you're registered, the matches you book or are booked into appear here, along with any results you need to enter or confirm.")}</section>`;
+  const mine=allMatches().filter(m=>mySide(m));
+  const attention=mine.filter(needsMe);
+  const upcoming=mine.filter(m=>!attention.includes(m)&&m.status==="scheduled");
+  const done=mine.filter(m=>!attention.includes(m)&&m.status!=="scheduled").reverse();
+  const grp=(label,list)=>list.length?`<div class="group-label">${label}</div><div class="mlist">${list.map(matchRow).join("")}</div>`:"";
+  const body = mine.length ? grp("Needs your attention",attention)+grp("Upcoming",upcoming)+grp("Played",done)
+    : emptyBox(`No matches yet. <button type="button" class="btn sm primary" data-act="tab" data-tab="book">Book a match</button>`);
+  return `<section class="card" aria-labelledby="mm-h"><div class="card-head"><h2 id="mm-h">Your matches</h2>${mine.length?'<button type="button" class="btn sm" data-act="tab" data-tab="book">Book another</button>':""}</div>${body}</section>`;
+}
+
+// ---------- Schedule ----------
+function noDays(){ return `<section class="card"><h2>Schedule</h2>${emptyBox(S.isOwner?`No match days yet. Add them in <button type="button" class="btn sm" data-act="tab" data-tab="admin">Admin</button>.`:"The organizer hasn't announced the match days yet. Check back soon.")}</section>`; }
+function defaultDay(d){ const t=todayStr(); return d.find(x=>x>=t) || d[d.length-1]; }
+function dayChips(list, cur, act){
+  return `<div class="chips" role="group" aria-label="Match day">${list.map(d=>{
+    const n=Object.values(S.matches).filter(m=>m.day===d).length;
+    return `<button type="button" class="chip" aria-pressed="${cur===d}" data-act="${act}" data-day="${d}">${esc(fmtDay(d))}<small>${n} ${n===1?"match":"matches"}${d===todayStr()?" · today":""}</small></button>`;}).join("")}</div>`;
+}
+function viewSchedule(){
+  const d=days(); if(!d.length) return noDays();
+  if(!d.includes(S.scheduleDay)) S.scheduleDay=defaultDay(d);
+  const day=S.scheduleDay, tables=tableList();
+  const canBook = S.uid && S.canWrite!==false && (me()||S.isOwner);
+  const rows=slotList().map(t=>`<tr><th scope="row">${esc(fmtTime(t))}<small>to ${esc(fmtTime(t+(Number(S.config.slotMinutes)||30)))}</small></th>${tables.map(tb=>{
+    const m=S.matches[matchKey(day,t,tb)];
+    if(m){ const c=counts(m);
+      return `<td><button type="button" class="cell match${mySide(m)?" mine":""}" data-act="open-match" data-id="${esc(m.id)}">
+        <span class="ln"><span>${catTag(m.category)}</span>${c?`<span class="score" style="font-size:1rem">${c[0]}–${c[1]}</span>`:statusPill(m)}</span>
+        <span class="ln"><span>${sideHtml(m,"a")}<span class="v">v</span>${sideHtml(m,"b")}</span></span></button></td>`; }
+    if(isPast(day,t)) return `<td><span class="cell closed">Not played</span></td>`;
+    return canBook ? `<td><button type="button" class="cell open" data-act="book-from-cell" data-day="${day}" data-slot="${t}" data-table="${tb}">Open · book</button></td>`
+      : `<td><span class="cell closed">Open</span></td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="stack"><section class="card"><div class="card-head"><h2>${esc(fmtDay(day,true))}</h2><span class="muted small">${slotList().length} slots × ${tables.length} ${tables.length===1?"table":"tables"}</span></div>
+    ${dayChips(d,day,"sched-day")}</section>
+    <div class="tbl-wrap"><table class="sched"><thead><tr><th>Time</th>${tables.map(t=>`<th>Table ${t}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+// ---------- Book ----------
+function viewBook(){
+  if(!S.connected) return `<section class="card"><h2>Book a match</h2>${emptyBox(S.failed?"Booking needs live data. Open this page in claude.ai while signed in.":"Connecting to the tournament…")}</section>`;
+  if(!S.uid||S.canWrite===false) return `<section class="card"><h2>Book a match</h2>${emptyBox("Only registered players can book. Sign in and ask the organizer for access.")}</section>`;
+  const p=me(), owner=S.isOwner;
+  if(!p&&!owner) return `<section class="card"><h2>Book a match</h2>${emptyBox(`Register first, then come back to pick an opponent and a time. <button type="button" class="btn sm primary" data-act="tab" data-tab="home">Register</button>`)}</section>`;
+  const d=days(); if(!d.length) return noDays();
+  const B=S.book;
+  const catOk = c => owner || !!mySideId(c);
+  if(!B.cat||!catOk(B.cat)) B.cat = ["singles","doubles"].find(catOk) || null;
+  if(!B.cat) return `<section class="card"><h2>Book a match</h2>${emptyBox(p.doubles&&!pairOf(S.uid)?"Lock in a doubles partner on My games before booking a doubles match.":"Register for singles, or for doubles with a partner, before booking.")}</section>`;
+  const cat=B.cat, ents=entities(cat);
+  if(!owner) B.a=mySideId(cat);
+  else if(!B.a||!ents.includes(B.a)) B.a = mySideId(cat) || null;
+  if(B.b&&(!ents.includes(B.b)||B.b===B.a)) B.b=null;
+  if(!d.includes(B.day)) B.day=defaultDay(d);
+
+  const seg=`<div class="seg" role="group" aria-label="Category">${["singles","doubles"].map(c=>`<button type="button" aria-pressed="${cat===c}" data-act="book-cat" data-cat="${c}" ${catOk(c)?"":"disabled"}>${c==="singles"?"Singles":"Doubles"}</button>`).join("")}</div>`;
+  const aSel = owner ? `<div class="field" style="max-width:360px"><label for="bk-a">Booking for</label><select id="bk-a" data-bind="book.a" data-rerender>
+      <option value="">Choose a ${cat==="singles"?"player":"pair"}</option>${ents.map(id=>`<option value="${esc(id)}" ${B.a===id?"selected":""}>${esc(sideName(cat,id))}${id===mySideId(cat)?" (you)":""}</option>`).join("")}</select></div>`
+    : `<p>Playing as <b>${esc(sideName(cat,B.a))}</b></p>`;
+  const opps=ents.filter(id=>id!==B.a);
+  const oppList = !B.a ? emptyBox("Choose who you're booking for first.") : opps.length ? `<div class="chips" role="group" aria-label="Opponent">${opps.map(id=>{
+      const dup=fixtureExists(cat,B.a,id);
+      const n=Object.values(S.matches).filter(m=>m.category===cat&&(m.a===id||m.b===id)).length;
+      return `<button type="button" class="chip" aria-pressed="${B.b===id}" data-act="book-opp" data-id="${esc(id)}" ${dup?"disabled":""}>${esc(sideName(cat,id))}<small>${dup?"Already drawn against you":`${n} ${n===1?"match":"matches"} booked`}</small></button>`;}).join("")}</div>`
+    : emptyBox(cat==="singles"?"No other singles players have registered yet.":"No other doubles pairs have formed yet.");
+
+  let grid="";
+  if(B.a&&B.b){
+    const ppl=[...members(cat,B.a),...members(cat,B.b)]; const all=Object.values(S.matches); const tables=tableList();
+    grid=`<div class="tbl-wrap"><table class="sched"><thead><tr><th>Time</th>${tables.map(t=>`<th>Table ${t}</th>`).join("")}</tr></thead><tbody>${slotList().map(t=>{
+      const busy=busyAt(B.day,t,all); const clash=ppl.some(x=>busy.has(x)); const past=isPast(B.day,t);
+      return `<tr><th scope="row">${esc(fmtTime(t))}</th>${tables.map(tb=>{
+        const taken=S.matches[matchKey(B.day,t,tb)];
+        if(past) return `<td><span class="cell closed">Passed</span></td>`;
+        if(taken) return `<td><span class="cell busy">Taken</span></td>`;
+        if(clash) return `<td><span class="cell busy">A player is busy</span></td>`;
+        const sel=B.cell&&B.cell[0]===t&&B.cell[1]===tb;
+        return `<td><button type="button" class="cell open pick" aria-pressed="${!!sel}" data-act="book-cell" data-slot="${t}" data-table="${tb}">${sel?"Selected":"Available"}</button></td>`;
+      }).join("")}</tr>`;}).join("")}</tbody></table></div>`;
+  }
+  const ready3 = B.a&&B.b&&B.cell;
+  return `<section class="card" aria-labelledby="bk-h"><div class="card-head"><h2 id="bk-h">Book a match</h2></div>
+    <div class="step"><h3><span class="step-n">1</span>Category</h3>${seg}${aSel}</div>
+    <div class="step"><h3><span class="step-n">2</span>Opponent</h3>${oppList}</div>
+    <div class="step"><h3><span class="step-n">3</span>Day and time</h3>${B.b?dayChips(d,B.day,"book-day")+grid:emptyBox("Pick an opponent to see the open slots.")}</div>
+    ${ready3?`<div class="actions" style="align-items:center"><button type="button" class="btn primary" id="btn-book" data-act="book-submit">Book ${esc(fmtDay(B.day))}, ${esc(fmtTime(B.cell[0]))}, Table ${B.cell[1]}</button><span class="muted small">${esc(sideName(cat,B.a))} v ${esc(sideName(cat,B.b))}</span></div>`:""}
+  </section>`;
+}
+
+// ---------- Players ----------
+function viewPlayers(){
+  const f=S.playerFilter.trim().toLowerCase();
+  const match = id => !f || (pName(id)+" "+(S.players[id]?.dept||"")).toLowerCase().includes(f);
+  const singles=Object.keys(S.players).filter(id=>S.players[id].singles&&match(id)).sort((x,y)=>pName(x).localeCompare(pName(y)));
+  const pairs=Object.keys(S.pairs).filter(id=>members("doubles",id).some(match)).sort((x,y)=>sideName("doubles",x).localeCompare(sideName("doubles",y)));
+  const lone=Object.keys(S.players).filter(id=>S.players[id].doubles&&!pairOf(id)&&match(id)).sort((x,y)=>pName(x).localeCompare(pName(y)));
+  const prow=id=>`<div class="prow"><span class="nm">${esc(pName(id))}${id===S.uid?' <span class="muted small">(you)</span>':""}${S.players[id].dept?`<small>${esc(S.players[id].dept)}</small>`:""}</span></div>`;
+  return `<div class="stack">
+    <div class="field" style="max-width:360px"><label for="pl-f">Find a player</label><input type="search" id="pl-f" data-bind="playerFilter" data-rerender value="${esc(S.playerFilter)}" placeholder="Name or department"></div>
+    <div class="grid2">
+      <section class="card"><div class="card-head"><h2>Singles</h2><span class="muted">${singles.length}</span></div>
+        ${singles.length?`<div class="plist">${singles.map(prow).join("")}</div>`:emptyBox(f?"No singles players match.":"No one has registered for singles yet.")}</section>
+      <div class="stack">
+        <section class="card"><div class="card-head"><h2>Doubles pairs</h2><span class="muted">${pairs.length}</span></div>
+          ${pairs.length?`<div class="plist">${pairs.map(id=>`<div class="prow"><span class="nm">${esc(sideName("doubles",id))}</span><span class="lock">${LOCK} Locked</span></div>`).join("")}</div>`:emptyBox(f?"No pairs match.":"No pairs have formed yet.")}</section>
+        <section class="card"><div class="card-head"><h2>Looking for a partner</h2><span class="muted">${lone.length}</span></div>
+          ${lone.length?`<div class="plist">${lone.map(prow).join("")}</div>`:emptyBox("Everyone in doubles has a partner.")}</section>
+      </div>
+    </div></div>`;
+}
+
+// ---------- Standings ----------
+function viewStandings(){
+  const table=cat=>{
+    const rows=standings(cat); const mineId=mySideId(cat);
+    if(!rows.length) return emptyBox(cat==="singles"?"No singles players yet.":"No doubles pairs yet.");
+    return `<div class="tbl-wrap"><table class="std"><thead><tr><th class="n">#</th><th>${cat==="singles"?"Player":"Pair"}</th><th class="n">P</th><th class="n">W</th><th class="n">L</th><th class="n">Games</th><th class="n">Points</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr class="${r.id===mineId?"me":""}"><td class="n rank">${i+1}</td><td>${esc(sideName(cat,r.id))}</td><td class="n">${r.p}</td><td class="n"><b>${r.w}</b></td><td class="n">${r.l}</td><td class="n">${r.gw}–${r.gl}</td><td class="n">${r.pf-r.pa>0?"+":""}${r.pf-r.pa}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  };
+  const recent=Object.values(S.matches).filter(hasResult).sort((x,y)=>(y.reportedAt||0)-(x.reportedAt||0)).slice(0,12);
+  return `<div class="stack">
+    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))">
+      <section class="card"><div class="card-head"><h2>Singles</h2></div>${table("singles")}</section>
+      <section class="card"><div class="card-head"><h2>Doubles</h2></div>${table("doubles")}</section>
+    </div>
+    <p class="small muted">Ranked by wins, then game difference, then points difference. Disputed results don't count until the organizer settles them.</p>
+    <section class="card"><div class="card-head"><h2>Latest results</h2></div>${recent.length?`<div class="mlist">${recent.map(matchRow).join("")}</div>`:emptyBox("No results yet. Players enter scores after each match.")}</section>
+  </div>`;
+}
+
+// ---------- Admin ----------
+function viewAdmin(){
+  if(!S.isOwner) return "";
+  const A=S.admin, c=S.config, d=days();
+  const tables=A.tables??c.tables, bestOf=A.bestOf??c.bestOf, slotMin=A.slotMinutes??c.slotMinutes;
+  const settings=`<section class="card" aria-labelledby="ad-set"><div class="card-head"><h2 id="ad-set">Tournament settings</h2></div>
+    <div class="step"><span class="legend">Match days</span>
+      ${d.length?`<div class="chips">${d.map(x=>{const n=Object.values(S.matches).filter(m=>m.day===x).length; return `<span class="chip" style="cursor:default">${esc(fmtDay(x))}<small>${n} booked · ${armBtn("day:"+x,"Remove","Confirm remove","admin-remove-day",`data-day="${x}"`,"btn danger sm")}</small></span>`;}).join("")}</div>`:emptyBox("No match days yet. Add the first one below.")}
+      <div class="row"><div class="field" style="flex:0 1 220px"><label for="ad-day">Add a day</label><input type="date" id="ad-day" data-bind="admin.newDay" value="${esc(A.newDay)}"></div><button type="button" class="btn" id="btn-add-day" data-act="admin-add-day">Add day</button></div>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:0 1 120px"><label for="ad-tables">Tables</label><input type="number" id="ad-tables" min="1" max="8" data-bind="admin.tables" value="${esc(tables)}"></div>
+      <div class="field" style="flex:0 1 140px"><label for="ad-bo">Match format</label><select id="ad-bo" data-bind="admin.bestOf">${[3,5].map(n=>`<option value="${n}" ${Number(bestOf)===n?"selected":""}>Best of ${n}</option>`).join("")}</select></div>
+      <div class="field" style="flex:0 1 160px"><label for="ad-slot">Slot length</label><select id="ad-slot" data-bind="admin.slotMinutes">${[20,30].map(n=>`<option value="${n}" ${Number(slotMin)===n?"selected":""}>${n} minutes</option>`).join("")}</select></div>
+      <button type="button" class="btn primary" id="btn-save-set" data-act="admin-save-settings">Save settings</button>
+    </div>
+    <p class="small muted">Matches run 4:30 to 7:30 pm. 30-minute slots give 6 matches per table per day; 20-minute slots give 9.</p>
+  </section>`;
+  const addPlayer=`<section class="card" aria-labelledby="ad-add"><div class="card-head"><h2 id="ad-add">Add a player</h2></div>
+    <p class="small muted">For players who won't sign in themselves. You can book matches and enter scores for them.</p>
+    <div class="row">
+      <div class="field"><label for="ad-pn">Name</label><input type="text" id="ad-pn" data-bind="admin.pName" value="${esc(A.pName)}" maxlength="40"></div>
+      <div class="field"><label for="ad-pd">Department <span class="opt">optional</span></label><input type="text" id="ad-pd" data-bind="admin.pDept" value="${esc(A.pDept)}" maxlength="40"></div>
+    </div>
+    <div class="row" style="align-items:center">
+      <label class="check"><input type="checkbox" id="ad-ps" data-bind="admin.pSingles" ${A.pSingles?"checked":""}> Singles</label>
+      <label class="check"><input type="checkbox" id="ad-pdb" data-bind="admin.pDoubles" ${A.pDoubles?"checked":""}> Doubles</label>
+      <button type="button" class="btn primary" id="btn-add-player" data-act="admin-add-player">Add player</button>
+    </div></section>`;
+  const free=Object.keys(S.players).filter(id=>S.players[id].doubles&&!pairOf(id)).sort((x,y)=>pName(x).localeCompare(pName(y)));
+  const opt=(sel)=>`<option value="">Choose a player</option>`+free.map(id=>`<option value="${esc(id)}" ${sel===id?"selected":""}>${esc(pName(id))}</option>`).join("");
+  const pairIds=Object.keys(S.pairs).sort((x,y)=>sideName("doubles",x).localeCompare(sideName("doubles",y)));
+  const pairs=`<section class="card" aria-labelledby="ad-pairs"><div class="card-head"><h2 id="ad-pairs">Doubles pairs</h2><span class="muted">${pairIds.length}</span></div>
+    <div class="row">
+      <div class="field"><label for="ad-pa">Player</label><select id="ad-pa" data-bind="admin.pairA">${opt(A.pairA)}</select></div>
+      <div class="field"><label for="ad-pb">Partner</label><select id="ad-pb" data-bind="admin.pairB">${opt(A.pairB)}</select></div>
+      <button type="button" class="btn" id="btn-make-pair" data-act="admin-create-pair">Create pair</button>
+    </div>
+    ${pairIds.length?`<div class="plist">${pairIds.map(id=>{const n=Object.values(S.matches).filter(m=>m.category==="doubles"&&(m.a===id||m.b===id)).length;
+      return `<div class="prow"><span class="nm">${esc(sideName("doubles",id))}<small>${n} ${n===1?"match":"matches"}</small></span>${armBtn("pair:"+id,"Remove pair",n?`Remove pair and ${n} ${n===1?"match":"matches"}`:"Confirm remove","admin-remove-pair",`data-id="${esc(id)}"`)}</div>`;}).join("")}</div>`:emptyBox("No pairs yet.")}
+  </section>`;
+  const pids=Object.keys(S.players).sort((x,y)=>pName(x).localeCompare(pName(y)));
+  const players=`<section class="card" aria-labelledby="ad-pl"><div class="card-head"><h2 id="ad-pl">All players</h2><span class="muted">${pids.length}</span></div>
+    ${pids.length?`<div class="plist">${pids.map(id=>{const p=S.players[id]; const n=Object.values(S.matches).filter(m=>m.category==="singles"&&(m.a===id||m.b===id)).length;
+      return `<div class="prow"><span class="nm">${esc(p.name)}<small>${p.dept?esc(p.dept)+" · ":""}${p.uid?"Signed up":"Added by organizer"}${pairOf(id)?" · partner "+esc(pName(partnerOf(id))):""}</small></span>
+        <span class="actions"><button type="button" class="btn sm" data-act="admin-toggle" data-id="${esc(id)}" data-cat="singles" aria-pressed="${!!p.singles}">${p.singles?"✓ ":""}Singles</button>
+        <button type="button" class="btn sm" data-act="admin-toggle" data-id="${esc(id)}" data-cat="doubles" aria-pressed="${!!p.doubles}">${p.doubles?"✓ ":""}Doubles</button>
+        ${armBtn("player:"+id,"Remove",n?`Remove with ${n} ${n===1?"match":"matches"}`:"Confirm remove","admin-remove-player",`data-id="${esc(id)}"`)}</span></div>`;}).join("")}</div>`:emptyBox("No players yet.")}
+  </section>`;
+  return `<div class="grid2"><div class="stack">${settings}${addPlayer}</div><div class="stack">${pairs}${players}</div></div>`;
+}
+
+// ---------- Match dialog ----------
+function matchPanel(m){
+  const c=counts(m), bo=Number(S.config.bestOf)||3;
+  const games = hasResult(m)&&m.games?.length ? `<div class="games">${m.games.map(g=>`<span>${g.a}–${g.b}</span>`).join("")}</div>` : "";
+  let status="";
+  if(m.status==="reported") status=`Result entered by ${esc(reporterName(m.reportedBy))}. Waiting for the other side to confirm.`;
+  else if(m.status==="confirmed") status="Final result.";
+  else if(m.status==="disputed") status=`The result was disputed. Either side can re-enter it, or the organizer will settle it.`;
+  else status = isPast(m.day,m.slot) ? "This match has started. Enter the result when it's done." : "Scheduled.";
+  let form="";
+  if(canReport(m)){
+    if(!S.isOwner&&!isPast(m.day,m.slot)) form=`<p class="small muted">Scores open when the match starts at ${esc(fmtTime(m.slot))} on ${esc(fmtDay(m.day))}.</p>`;
+    else {
+      const rows=S.scores[m.id]||[];
+      form=`<div class="step"><h3>${hasResult(m)?"Correct the result":"Enter the result"}</h3>
+        <div class="sgrid"><span></span><span class="h">${esc(sideName(m.category,m.a))}</span><span class="h">${esc(sideName(m.category,m.b))}</span>
+        ${Array.from({length:bo},(_,i)=>`<span class="small muted">Game ${i+1}</span>
+          <input type="number" inputmode="numeric" min="0" max="99" id="sc-${i}-a" data-score="${i}:0" value="${esc(rows[i]?.[0]??"")}" aria-label="Game ${i+1}, ${esc(sideName(m.category,m.a))}">
+          <input type="number" inputmode="numeric" min="0" max="99" id="sc-${i}-b" data-score="${i}:1" value="${esc(rows[i]?.[1]??"")}" aria-label="Game ${i+1}, ${esc(sideName(m.category,m.b))}">`).join("")}</div>
+        ${S.scoreErr?`<p class="err" role="alert">${esc(S.scoreErr)}</p>`:""}
+        <div class="actions"><button type="button" class="btn primary" id="btn-report" data-act="report" data-id="${esc(m.id)}">Save result</button></div>
+        <p class="small muted">Best of ${bo}. Games go to 11, win by 2.${S.isOwner?" Results you enter are final.":" Your opponent confirms the result."}</p></div>`;
+    }
+  }
+  const confirm = canConfirm(m) ? `<div class="actions"><button type="button" class="btn primary" id="btn-confirm" data-act="confirm-result" data-id="${esc(m.id)}">Confirm result</button>${armBtn("dispute:"+m.id,"Dispute","Tap again to dispute","dispute-result",`data-id="${esc(m.id)}"`)}</div>` : "";
+  const admin = [];
+  if(canCancel(m)) admin.push(armBtn("cancel:"+m.id, S.isOwner?"Delete match":"Cancel booking", "Tap again to confirm", "cancel-match", `data-id="${esc(m.id)}"`));
+  if(S.isOwner&&hasResult(m)) admin.push(armBtn("reset:"+m.id,"Clear result","Tap again to clear","admin-reset",`data-id="${esc(m.id)}"`));
+  return `<div class="dlg">
+    <div class="card-head"><div>${catTag(m.category)} <b>${esc(fmtDay(m.day,true))}</b><div class="muted small">${esc(slotLabel(m.slot))} · Table ${m.table}</div></div><button type="button" class="btn sm" data-act="close-dlg" aria-label="Close">Close</button></div>
+    <div class="board"><span class="side">${esc(sideName(m.category,m.a))}</span><span class="big">${c?`${c[0]}–${c[1]}`:"v"}</span><span class="side">${esc(sideName(m.category,m.b))}</span></div>
+    ${games}
+    <div class="actions" style="align-items:center">${statusPill(m)}<span class="small muted">${status}</span></div>
+    ${confirm}${form}
+    ${admin.length?`<div class="actions" style="border-top:1px solid var(--line);padding-top:12px">${admin.join("")}</div>`:""}
+  </div>`;
+}
+function renderDialog(){
+  const dlg=$("#dlg");
+  if(!S.openMatch){ if(dlg.open) dlg.close(); return; }
+  const m=S.matches[S.openMatch];
+  if(!m){ S.openMatch=null; if(dlg.open) dlg.close(); return; }
+  dlg.innerHTML=matchPanel(m);
+  if(!dlg.open){ try{ dlg.showModal(); }catch{ dlg.setAttribute("open",""); } }
+}
+
+// ---------- render ----------
+const VIEWS={home:viewHome,schedule:viewSchedule,book:viewBook,players:viewPlayers,standings:viewStandings,admin:viewAdmin};
+function render(){
+  if(S.tab==="admin"&&!S.isOwner) S.tab="home";
+  const ae=document.activeElement, fid=ae&&ae.id; let ss=null,se=null; try{ ss=ae.selectionStart; se=ae.selectionEnd; }catch{}
+  $("#hdr-meta").innerHTML=headerMeta();
+  $("#viewer").innerHTML=viewerChip();
+  $("#banner").innerHTML=banner();
+  $("#tabs").innerHTML=tabs();
+  $("#view").innerHTML=VIEWS[S.tab]();
+  renderDialog();
+  if(fid){ const el=document.getElementById(fid); if(el&&el!==document.activeElement){ el.focus({preventScroll:true}); try{ if(ss!=null) el.setSelectionRange(ss,se); }catch{} } }
+}
+let raf=0; const schedule=()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; render(); }); };
+
+let toastT=0;
+function toast(msg, bad){ const t=$("#toast"); t.textContent=msg; t.className=bad?"bad":""; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;}, bad?6000:3500); }
+function errMsg(e){
+  if(e&&!e.code&&e.message) return e.message;
+  switch(e?.code){
+    case "invalid_argument": return "That change wasn't allowed. You may not have permission to make it.";
+    case "quota_exceeded": return "The tournament database is full. Ask the organizer to remove old matches.";
+    case "resource_exhausted": return "Too many changes at once. Wait a moment and try again.";
+    case "revoked": case "not_granted": return "Your access to this page changed. Reload to continue.";
+    default: return "That didn't save. Check your connection and try again.";
+  }
+}
+async function run(fn, okMsg){
+  if(S.busy) return; S.busy=true; document.body.style.cursor="progress";
+  try{ const r=await fn(); if(r!==false&&okMsg) toast(typeof okMsg==="function"?okMsg():okMsg); }
+  catch(e){ console.warn(e); toast(errMsg(e), true); }
+  finally{ S.busy=false; document.body.style.cursor=""; schedule(); }
+}
+function setPath(path, val){ const ks=path.split("."); let o=S; while(ks.length>1){ const k=ks.shift(); if(o[k]==null) return; o=o[k]; } o[ks[0]]=val; }
+const cleanName = s => String(s||"").replace(/\s+/g," ").trim().slice(0,40);
+
+// ---------- writes ----------
+async function createPair(a, b, docId){
+  if(!a||!b||a===b) throw new Error("Choose two different players.");
+  const lock=S.db.doc("locks/pairing");
+  const r=await lock.acquire({holder:S.uid||"organizer", ttlMs:8000});
+  if(!r.acquired) throw new Error("Another pairing is being saved right now. Try again in a few seconds.");
+  const snap=await S.db.collection("pairs").get();
+  for(const d of snap.docs){ const p=d.data()||{};
+    if(p.a===a||p.b===a) throw new Error(`${pName(a)} already has a partner.`);
+    if(p.a===b||p.b===b) throw new Error(`${pName(b)} already has a partner.`); }
+  const ref=S.db.doc("pairs/"+docId); const ex=await ref.get();
+  if(ex.exists&&ex.data()?.a) throw new Error("You already have a partner on record. Ask the organizer to check.");
+  await ref.set({a,b,createdBy:S.uid,createdAt:Date.now()});
+}
+async function deleteMatches(pred){ for(const m of Object.values(S.matches).filter(pred)) await S.db.doc("matches/"+m.id).delete(); }
+
+const ACTIONS={
+  "tab": el=>{ S.tab=el.dataset.tab; S.armed=null; try{ history.replaceState(null,"","#"+S.tab); }catch{} render(); window.scrollTo({top:0}); },
+  "register": ()=> run(async()=>{
+    const name=cleanName(S.reg.name); if(!name) throw new Error("Enter your name.");
+    if(!S.reg.singles&&!S.reg.doubles) throw new Error("Pick at least one category.");
+    await S.db.doc("players/"+S.uid).set({name,dept:cleanName(S.reg.dept),singles:!!S.reg.singles,doubles:!!S.reg.doubles,uid:S.uid,createdAt:Date.now()});
+  }, "You're registered."),
+  "edit-profile": ()=>{ const p=me(); S.edit={name:p.name,dept:p.dept||"",singles:!!p.singles,doubles:!!p.doubles}; render(); },
+  "cancel-edit": ()=>{ S.edit=null; render(); },
+  "save-profile": ()=> run(async()=>{
+    const e=S.edit, p=me(); const name=cleanName(e.name);
+    if(!name) throw new Error("Enter your name.");
+    if(!e.singles&&!e.doubles) throw new Error("Pick at least one category.");
+    if(p.doubles&&!e.doubles&&pairOf(S.uid)) throw new Error("You have a locked doubles partner. Ask the organizer to remove the pair first.");
+    if(p.singles&&!e.singles&&Object.values(S.matches).some(m=>m.category==="singles"&&(m.a===S.uid||m.b===S.uid))) throw new Error("You have singles matches booked. Cancel them before leaving singles.");
+    await S.db.doc("players/"+S.uid).update({name,dept:cleanName(e.dept),singles:!!e.singles,doubles:!!e.doubles});
+    S.edit=null;
+  }, "Registration updated."),
+  "pick-partner": el=>{ S.partnerPick=el.dataset.id; S.armed=null; render(); },
+  "confirm-partner": ()=> run(async()=>{
+    const pick=S.partnerPick; if(!pick) return false;
+    if(pairOf(S.uid)) throw new Error("You already have a partner.");
+    await createPair(S.uid, pick, S.uid); S.partnerPick=null;
+  }, ()=>`Partner locked in.`),
+  "sched-day": el=>{ S.scheduleDay=el.dataset.day; render(); },
+  "book-from-cell": el=>{
+    const day=el.dataset.day, slot=Number(el.dataset.slot), table=Number(el.dataset.table);
+    S.book.day=day; S.book.cell=[slot,table]; S.tab="book"; render(); window.scrollTo({top:0});
+  },
+  "book-cat": el=>{ S.book.cat=el.dataset.cat; S.book.a=null; S.book.b=null; render(); },
+  "book-opp": el=>{ S.book.b=el.dataset.id; render(); },
+  "book-day": el=>{ S.book.day=el.dataset.day; S.book.cell=null; render(); },
+  "book-cell": el=>{ S.book.cell=[Number(el.dataset.slot),Number(el.dataset.table)]; render(); },
+  "book-submit": ()=> run(async()=>{
+    const B=S.book, cat=B.cat; if(!B.a||!B.b||!B.cell) throw new Error("Pick an opponent and a slot.");
+    if(!S.isOwner&&B.a!==mySideId(cat)) throw new Error("You can only book your own matches.");
+    if(fixtureExists(cat,B.a,B.b)) throw new Error("These two already have a match.");
+    const [slot,table]=B.cell, day=B.day; if(isPast(day,slot)) throw new Error("That slot has already started. Pick a later one.");
+    const id=matchKey(day,slot,table), ref=S.db.doc("matches/"+id);
+    const r=await ref.acquire({holder:S.uid, ttlMs:8000});
+    if(!r.acquired) throw new Error("Someone is booking that slot right now. Pick another or try again shortly.");
+    const ex=await ref.get(); if(ex.exists&&ex.data()?.a) throw new Error("That slot was just taken. Pick another one.");
+    const same=(await S.db.collection("matches").where("day","==",day).get()).docs.map(d=>d.data()).filter(m=>m&&m.a);
+    const busy=busyAt(day,slot,same);
+    if([...members(cat,B.a),...members(cat,B.b)].some(p=>busy.has(p))) throw new Error("One of the players already has a match at that time.");
+    await ref.set({category:cat,a:B.a,b:B.b,day,slot,table,status:"scheduled",games:[],winner:null,bookedBy:S.uid,bookedAt:Date.now(),reportedBy:null,reportedAt:null});
+    const msg=`Booked: ${fmtDay(day)}, ${fmtTime(slot)}, Table ${table}.`;
+    S.book={cat,a:null,b:null,day,cell:null}; S.tab="home"; toast(msg); return false;
+  }),
+  "open-match": el=>{ const m=S.matches[el.dataset.id]; if(!m) return;
+    S.openMatch=m.id; S.scoreErr=""; S.armed=null;
+    S.scores[m.id]=(m.games||[]).map(g=>[String(g.a),String(g.b)]); render(); },
+  "close-dlg": ()=>{ S.openMatch=null; S.armed=null; render(); },
+  "report": el=> run(async()=>{
+    const m=S.matches[el.dataset.id]; if(!m) return false;
+    const res=evalScore(S.scores[m.id]||[], Number(S.config.bestOf)||3);
+    if(res.error){ S.scoreErr=res.error; return false; }
+    S.scoreErr="";
+    await S.db.doc("matches/"+m.id).update({games:res.games,winner:res.winner,status:S.isOwner?"confirmed":"reported",reportedBy:S.uid,reportedAt:Date.now()});
+  }, "Result saved."),
+  "confirm-result": el=> run(()=>S.db.doc("matches/"+el.dataset.id).update({status:"confirmed",confirmedBy:S.uid}), "Result confirmed."),
+  "dispute-result": el=> run(()=>S.db.doc("matches/"+el.dataset.id).update({status:"disputed",disputedBy:S.uid}), "Marked as disputed. The organizer will see it."),
+  "cancel-match": el=> run(async()=>{ await S.db.doc("matches/"+el.dataset.id).delete(); S.openMatch=null; }, "Match removed."),
+  "admin-reset": el=> run(()=>S.db.doc("matches/"+el.dataset.id).update({status:"scheduled",games:[],winner:null,reportedBy:null,reportedAt:null}), "Result cleared."),
+  "admin-add-day": ()=> run(async()=>{
+    const d=S.admin.newDay; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error("Pick a date first.");
+    if(days().includes(d)) throw new Error("That day is already on the schedule.");
+    await S.db.doc("config/settings").set({...S.config,days:[...days(),d].sort()}); S.admin.newDay="";
+  }, "Day added."),
+  "admin-remove-day": el=> run(async()=>{
+    const d=el.dataset.day; await deleteMatches(m=>m.day===d);
+    await S.db.doc("config/settings").set({...S.config,days:days().filter(x=>x!==d)});
+  }, "Day removed."),
+  "admin-save-settings": ()=> run(async()=>{
+    const A=S.admin; const tables=Math.round(Number(A.tables??S.config.tables)); const bestOf=Number(A.bestOf??S.config.bestOf); const slotMinutes=Number(A.slotMinutes??S.config.slotMinutes);
+    if(!(tables>=1&&tables<=8)) throw new Error("Tables must be between 1 and 8.");
+    const ms=Object.values(S.matches);
+    if(ms.some(m=>m.table>tables)) throw new Error(`Some matches are booked on tables above ${tables}. Move or delete them first.`);
+    if(slotMinutes!==Number(S.config.slotMinutes)&&ms.length) throw new Error("Slot length can't change once matches are booked.");
+    await S.db.doc("config/settings").set({...S.config,tables,bestOf,slotMinutes});
+    A.tables=A.bestOf=A.slotMinutes=null;
+  }, "Settings saved."),
+  "admin-add-player": ()=> run(async()=>{
+    const A=S.admin, name=cleanName(A.pName); if(!name) throw new Error("Enter the player's name.");
+    if(!A.pSingles&&!A.pDoubles) throw new Error("Pick at least one category.");
+    await S.db.collection("players").doc().set({name,dept:cleanName(A.pDept),singles:!!A.pSingles,doubles:!!A.pDoubles,uid:null,createdAt:Date.now()});
+    A.pName=""; A.pDept="";
+  }, "Player added."),
+  "admin-toggle": el=> run(async()=>{
+    const id=el.dataset.id, cat=el.dataset.cat, p=S.players[id]; if(!p) return false;
+    const next=!p[cat];
+    if(!next&&!(cat==="singles"?p.doubles:p.singles)) throw new Error("A player needs at least one category. Remove them instead.");
+    if(!next&&cat==="doubles"&&pairOf(id)) throw new Error("Remove their pair first.");
+    if(!next&&cat==="singles"&&Object.values(S.matches).some(m=>m.category==="singles"&&(m.a===id||m.b===id))) throw new Error("They have singles matches. Delete those first.");
+    await S.db.doc("players/"+id).update({[cat]:next});
+  }),
+  "admin-create-pair": ()=> run(async()=>{
+    const {pairA,pairB}=S.admin; await createPair(pairA,pairB,S.db.collection("pairs").doc().id); S.admin.pairA=S.admin.pairB="";
+  }, "Pair created."),
+  "admin-remove-pair": el=> run(async()=>{
+    const id=el.dataset.id; await deleteMatches(m=>m.category==="doubles"&&(m.a===id||m.b===id)); await S.db.doc("pairs/"+id).delete();
+  }, "Pair removed."),
+  "admin-remove-player": el=> run(async()=>{
+    const id=el.dataset.id; if(pairOf(id)) throw new Error("This player is in a doubles pair. Remove the pair first.");
+    await deleteMatches(m=>m.category==="singles"&&(m.a===id||m.b===id)); await S.db.doc("players/"+id).delete();
+  }, "Player removed.")
+};
+
+// ---------- events ----------
+document.addEventListener("click", e=>{
+  const el=e.target.closest("[data-act]"); if(!el||el.disabled) return;
+  const fn=ACTIONS[el.dataset.act]; if(!fn) return;
+  const key=el.dataset.arm;
+  if(key&&S.armed!==key){ S.armed=key; render(); setTimeout(()=>{ if(S.armed===key){ S.armed=null; render(); } },4000); return; }
+  S.armed=null; fn(el,e);
+});
+function onField(e){
+  const t=e.target;
+  if(t.dataset.score!=null&&S.openMatch){
+    const [i,j]=t.dataset.score.split(":").map(Number); const rows=S.scores[S.openMatch]||(S.scores[S.openMatch]=[]);
+    while(rows.length<=i) rows.push(["",""]); rows[i][j]=t.value; return;
+  }
+  const b=t.dataset.bind; if(!b) return;
+  setPath(b, t.type==="checkbox"?t.checked:t.value);
+  if(b.startsWith("reg.")) S.regTouched=true;
+  if(t.dataset.rerender!=null) schedule();
+}
+document.addEventListener("input", onField);
+document.addEventListener("change", onField);
+$("#dlg").addEventListener("close", ()=>{ if(S.openMatch){ S.openMatch=null; schedule(); } });
+$("#dlg").addEventListener("click", e=>{ if(e.target===e.currentTarget){ S.openMatch=null; render(); } });
+
+// ---------- boot ----------
+function subscribe(){
+  const onErr = what => e => { console.warn(what, e); if(e?.code==="revoked"){ S.failed=true; } schedule(); };
+  S.db.collection("players").onSnapshot(s=>{ S.players=Object.fromEntries(s.docs.filter(d=>d.data()?.name).map(d=>[d.id,d.data()])); S.loaded.players=true; schedule(); }, onErr("players"));
+  S.db.collection("pairs").onSnapshot(s=>{ S.pairs=Object.fromEntries(s.docs.filter(d=>d.data()?.a).map(d=>[d.id,d.data()])); S.loaded.pairs=true; schedule(); }, onErr("pairs"));
+  S.db.collection("matches").onSnapshot(s=>{ S.matches=Object.fromEntries(s.docs.filter(d=>d.data()?.a).map(d=>[d.id,{...d.data(),id:d.id}])); S.loaded.matches=true; schedule(); }, onErr("matches"));
+  S.db.doc("config/settings").onSnapshot(d=>{ S.config={...DEFAULTS,...(d.exists?d.data():{})}; S.loaded.config=true; schedule(); }, onErr("config"));
+}
+async function boot(){
+  const h=(location.hash||"").slice(1); if(TABS.some(([k])=>k===h)) S.tab=h;
+  render();
+  if(!window.claude?.use){ S.failed=true; render(); return; }
+  const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+  S.user=user;
+  if(user){
+    const v=await user.me(); S.uid=v.id; S.isOwner=!!v.isOwner; S.myName=v.name||""; S.avatar=v.avatarUrl||"";
+    S.canWrite=await user.can("data.write");
+    if(!S.regTouched&&S.myName) S.reg.name=S.myName;
+  }
+  if(!db){ S.failed=true; render(); return; }
+  S.db=db; S.connected=true; subscribe(); render();
+}
+boot();
+})();
+</script>
